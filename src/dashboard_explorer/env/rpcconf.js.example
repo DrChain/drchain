@@ -1,0 +1,9 @@
+var conf = {
+  host: '',
+  port: '',
+  username: '',
+  password: '',
+  timeout: 30000
+}
+
+module.exports = conf

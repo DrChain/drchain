@@ -1,0 +1,10 @@
+var remote = {
+  protocol: 'http',
+  backendPort: '',
+  frontendPort: '',
+  url: function (hostName) {
+    return this.protocol + '://' + hostName + ':' + this.frontendPort
+  }
+}
+
+module.exports = remote
