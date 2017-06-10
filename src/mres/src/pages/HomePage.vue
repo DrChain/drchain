@@ -41,7 +41,9 @@
           </div>
         </div>
         <div class="btn-container">
-          <el-button type="primary" size="large" class="center">調閱</el-button>
+          <router-link :to="{name: 'ScanPage'}">
+            <el-button type="primary" size="large" class="center">調閱</el-button>
+          </router-link>
         </div>
       </el-col>
       <el-col :span="6">
