@@ -46,16 +46,17 @@ services:
       - ./log/explorer:/var/log/explorer
     restart: always
 
-#  mres:
-#    container_name: mres
-#    build: ./src/mres/
-#    hostname: mres
-#    ports:
-#      - "80:80"
-#    volumes:
-#      - /etc/localtime:/etc/localtime:ro
-#      - ./configure.conf:/etc/mres/configure.conf:ro
-#      - ./src/mres/docker-entrypoint.sh:/entrypoint.sh:ro
-#      - ./data/mres:/root/mres/node
-#      - ./log/mres:/var/log/mres
-#    restart: always
+  mres:
+    container_name: mres
+    build: 
+      context: ./src/drchain-server/
+      dockerfile: docker/Dockerfile
+    hostname: mres
+    ports:
+      - "80:80"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./configure.conf:/etc/mres/configure.conf:ro
+      - ./src/drchain-server/docker/docker-entrypoint.sh:/entrypoint.sh:ro
+      - ./log/mres:/var/log/mres
+    restart: always

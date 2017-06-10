@@ -10,3 +10,4 @@ src/drchain-server/npm-debug.log
 src/drchain-server/.nuxt
 src/drchain-server/dist
 src/drchain-server/build
+src/drchain-server/config.json

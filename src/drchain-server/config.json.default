@@ -1,13 +1,13 @@
 {
   "web3": {
-    "host": "0.0.0.0",
-    "port": "1987",
+    "host": "<ethernet_host>",
+    "port": "<ethernet_port>",
     "protocol": "http"
   },
   "ipfs": {
-    "host": "ipfs.infura.io",
-  	"port": 5001,
-  	"protocol": "https"
+    "host": "<ipfs_host>",
+  	"port": "<ipfs_port>",
+  	"protocol": "<ipfs_protocol>"
   },
   "myContract": {},
   "myPrivkey": {},

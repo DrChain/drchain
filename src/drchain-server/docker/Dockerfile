@@ -2,7 +2,7 @@ FROM node:7.7.1
 MAINTAINER wubm@cepave.com
 
 # ENV VAR
-ENV HOME=/root WORKDIR=/root/explorer
+ENV HOME=/root WORKDIR=/root/mres
 
 # Switch to /root
 WORKDIR $HOME
@@ -11,12 +11,12 @@ WORKDIR $HOME
 RUN cp /usr/share/zoneinfo/Asia/Taipei /etc/localtime
 
 # Prepare env
-RUN git clone https://github.com/carsenk/explorer
+RUN mkdir -p $WORKDIR
+COPY . $WORKDIR
 
 # Install package
 RUN cd $WORKDIR \
-    && npm install \
-    && bower install
+    && npm install
 
-COPY docker-entrypoint.sh /entrypoint.sh
+COPY docker/docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
