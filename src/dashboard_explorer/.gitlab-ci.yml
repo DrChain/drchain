@@ -1,0 +1,107 @@
+stages:
+  - unit_test
+  - build_image
+  - test
+  - upload
+  - upload_tag
+  - clean
+
+.gitlab_template: &gitlab_registry
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  after_script:
+    - docker logout $CI_REGISTRY
+
+.npm_template: &npm_definition
+  before_script:
+    - yarn install
+
+unit_test:test:
+  <<: *npm_definition
+  stage: unit_test
+  image: node:7.7.1
+  script:
+    - ./docker/docker-entrypoint.sh -m
+    - npm run unit
+  tags:
+    - docker
+
+#unit_test:e2e:
+#  <<: *npm_definition
+#  stage: unit_test
+#  image: node:6.3.1
+#  script:
+#    - npm run e2e
+#  tags:
+#    - docker
+
+unit_test:install_explorer:
+  stage: unit_test
+  image: node:7.7.1
+  script:
+    - npm install
+  tags:
+    - docker
+
+unit_test:install_pm2:
+  stage: unit_test
+  image: node:7.7.1
+  script:
+    - npm install -g pm2
+  tags:
+    - docker
+
+build_image:
+  stage: build_image
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE -f docker/Dockerfile .
+  tags:
+    - shell
+  only:
+    - master
+    - tags
+
+test:integration_test:
+  stage: test
+  script:
+    - echo "function/integration test"
+  tags:
+    - shell
+  only:
+    - master
+    - tags
+
+upload_image:
+  <<: *gitlab_registry
+  stage: upload
+  script:
+    - docker tag $CI_REGISTRY_IMAGE $CI_REGISTRY_IMAGE:${CI_BUILD_REF:0:8}
+    - docker push $CI_REGISTRY_IMAGE:${CI_BUILD_REF:0:8}
+    - docker rmi $CI_REGISTRY_IMAGE:${CI_BUILD_REF:0:8}
+  tags:
+    - shell
+  only:
+    - master
+
+upload_tag_image:
+  <<: *gitlab_registry
+  stage: upload_tag
+  script:
+    - docker push $CI_REGISTRY_IMAGE
+    - docker tag $CI_REGISTRY_IMAGE $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+    - docker push $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+    - docker rmi $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+  tags:
+    - shell
+  only:
+    - tags
+
+clean_image:
+  stage: clean
+  script:
+    - docker rmi $CI_REGISTRY_IMAGE ; exit 0
+  tags:
+    - shell
+  only:
+    - master
+    - tags
