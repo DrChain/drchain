@@ -23,6 +23,76 @@ global.ECIES = require('bitcore-ecies')
 // Connect Web3 Instance
 global.web3 = new Web3(new Web3.providers.HttpProvider(`http://${global.config.rpc.host}:${global.config.rpc.port}`))
 
+global.request = {
+  "content": {
+    "patientId": "A12345678",
+    "applicant": {
+      "id": 2,
+      "name": "貓大醫院",
+      "pubkey": "TODO"
+    },
+    "records": [
+        {
+          "hosiptalId": 1,
+          "recordId": 1,
+          "recordName": "熊大醫院 內科檢查"
+        }
+    ]
+  }
+}
+
+global.note = {
+  "hosiptals": [
+    {
+      "id": 1,
+      "name": "熊大醫院",
+      "pubkey": "TODO"
+    },
+    {
+      "id": 2,
+      "name": "貓大醫院",
+      "pubkey": "TODO"
+    }
+  ],
+  "records": [
+    {
+      "hospitalId": 1,
+      "recordId": 1,
+      "patientId": "A12345678",
+      "name": "熊大醫院 內科檢查",
+      "date": "2016-01-01",
+      "physicianName": "Dr. Chain",
+      "data": {
+        "department": "",
+        "icd": {
+          "code": "J11.08",
+          "name": "Influenza due to unidentified influenza virus with specified pneumonia 未確認流感病毒所致流行性感冒併明示類型肺炎"
+        },
+        "docSect": {
+          "subjective": "stable now and no complaint, report normal home BP; ever increased BP noted for weeks,no DOE, no chest pain, no syncope, no PND，no orthopnea",
+          "objective": "BP:148/70 mmHg, HR:66/min, PE: pale conjunctiva-, icteric sclera-; JVE-, carotid bruits-，goiter-; clear bs, no rales, no wheezing; RHB，soft SM，Peripheral pulses: ++, pitting edema-",
+          "assessment": "HCVD"
+        },
+        "procedure": [
+          "腹部超音波，追蹤性" ,
+          "全套血液檢查ⅢCBC-III"
+        ],
+        "prescription": [
+          "力停疼錠500公絲"
+        ]
+      }
+    }
+  ],
+  "patients": [
+    {
+      "id": "A12345678",
+      "name": "Brian Chen",
+      "gender": "M",
+      "birthDate": "1960-01-01"
+    }
+  ]
+}
+
 // Helper Functions
 class Helpers {
   constructor() {
