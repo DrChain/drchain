@@ -1,6 +1,8 @@
 <template>
   <div class="scan">
-    <qr-code text="中文字" class="margin-top"></qr-code>
+    <div class="center">
+      <qr-code text="中文字" size="500"></qr-code>
+    </div>
   </div>
 </template>
 
@@ -9,18 +11,24 @@ export default {
   name: 'ScanPage',
   data () {
     return {
+      query: this.$route.params.query
     }
   },
   mounted () {
+    this.generateQRCode()
   },
   methods: {
+    generateQRCode () {
+      console.log(this.query)
+    }
   }
 }
 </script>
 
 <style scoped>
-.margin-top {
+.center {
+  display: table;
+  margin: 0 auto;
   margin-top: 100px;
-  margin-left: 100px;
 }
 </style>

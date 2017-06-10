@@ -1,6 +1,6 @@
-# explorer
+# Electronic medical records
 
-> vChain Explorer
+> MERS
 
 ## Build Setup
 
