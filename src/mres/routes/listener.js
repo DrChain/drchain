@@ -17,12 +17,12 @@ const web3 = new Web3(new Web3.providers.HttpProvider(web3Protocol + '://' + web
 // const myPrivkey = config.myPrivkey
 
 // simulate first
-const myContractAddress = '0xfb1aee651a39b2091b9bcbb47d08ce072321a60c'
+const myContractAddress = '0x53c29e930753eec03002316e69565eb6cae707cc'
 const myAccount = '0xfd54bccece385e59ca9549cea0322d133ea1e640'
 const myPrivkey = 'dc335d1563244f9ff4babf57dd797b5b1ba3fa74ba42bd41133ed94d7f4f9f1d'
 
 
-const myAbi = [{"constant":false,"inputs":[{"name":"signedHash","type":"bytes32"},{"name":"ipfs_url","type":"bytes32"}],"name":"doMyBest","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"patientId","type":"string"},{"name":"json","type":"string"},{"name":"signedHash","type":"bytes32"}],"name":"showMeYourRecord","outputs":[],"payable":false,"type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"patientId","type":"string"},{"indexed":false,"name":"json","type":"string"},{"indexed":false,"name":"signedHash","type":"bytes32"}],"name":"requestH1Data","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"signedHash","type":"bytes32"},{"indexed":false,"name":"ipfs_url","type":"bytes32"}],"name":"passDataToH2","type":"event"}]
+const myAbi = [{"constant":false,"inputs":[{"name":"signedHash","type":"bytes32"},{"name":"ipfs_url","type":"bytes32"}],"name":"doMyBest","outputs":[],"payable":false,"type":"function"},{"constant":false,"inputs":[{"name":"patientId","type":"string"},{"name":"json","type":"string"},{"name":"signedHash","type":"bytes32"}],"name":"showMeYourRecord","outputs":[],"payable":false,"type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"patientId","type":"string"},{"indexed":false,"name":"json","type":"string"},{"indexed":true,"name":"signedHash","type":"bytes32"}],"name":"requestH1Data","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"signedHash","type":"bytes32"},{"indexed":false,"name":"ipfs_url","type":"bytes32"}],"name":"passDataToH2","type":"event"}]
 
 // Set IPFS
 const ipfsHost = config.ipfs.host
@@ -39,47 +39,45 @@ const utils = new Helpers()
 
 //  TODO: Set contract
 
-exports.listenQueryEvent = function () {
-	const recordContract = web3.eth.contract(myAbi)
-	const myContract = recordContract.at(myContractAddress)
-
-	return new Promise( function(resolve, reject) {
-		var filter = myContract.requestH1Data()
-		return filter.watch()
-	}).then( (error, result) => {
-    // event.stopWatching();
-		console.log('result.args:', result.args)
-
-    json = result.args.json
-    signedHash = result.args.signedHash
-    console.log("json:", json, " signedHash:", signedHash)
-
-		const messageHashx = web3.sha3(json)
-		const patientId = JSON.parse(json).patientId
-		const recordId = JSON.parse(json).records[0].recordId
-		const applicantId = JSON.parse(json).applicant.id
-		const targetContract = dbData.hosiptals[applicantId - 1].contractAddress
-		const patientAccount = dbData.patientId[0].account
-		if (utils.verifySig(messageHashx, signedHash, patientAccount)) {
-			resolve(recordId)
-		} else {
-			reject()
-		}
-  }).then( recordId => {
-			const data = JSON.stringify(dbData.records[0])
-			return addRecord()
-	}).then( ipfsHash =>
-		// callReceiveFunction(contractAddress, signedHash, ipfs_url)
-		callReceiveFunction(targetContract, patientId, ipfsHash)
-	).then (
-		txId => resolve(txId)
-	)
-}
-
-// TODO
-function verify(pubkey, sign) {
-  return(0)
-}
+// exports.listenQueryEvent = function () {
+// 	const recordContract = web3.eth.contract(myAbi)
+// 	const myContract = recordContract.at(myContractAddress)
+//
+// 	return new Promise( function(resolve, reject) {
+// 		var event = myContract.requestH1Data()
+// 		return event.watch()
+// 	}).then( (error, result) => {
+//     // event.stopWatching();
+// 		console.log('result.args:', result.args)
+//
+//     json = result.args.json
+//     signedHash = result.args.signedHash
+//     console.log("json:", json, " signedHash:", signedHash)
+//
+// 		const messageHashx = web3.sha3(json)
+// 		const patientId = JSON.parse(json).patientId
+// 		const recordId = JSON.parse(json).records[0].recordId
+// 		const applicantId = JSON.parse(json).applicant.id
+// 		const targetContract = dbData.hosiptals[applicantId - 1].contractAddress
+// 		const patientAccount = dbData.patientId[0].account
+// 		if (utils.verifySig(messageHashx, signedHash, patientAccount)) {
+// 			resolve(recordId)
+// 		} else {
+// 			reject()
+// 		}
+//   }).then( recordId => {
+// 			const data = JSON.stringify(dbData.records[0])
+// 			return addRecord()
+// 	}).then( ipfsHash => {
+// 		// TODO: encrypt ipfsHash to ipfs_url
+// 		const ipfs_url = ipfsHash
+//
+// 		// callReceiveFunction(contractAddress, signedHash, ipfs_url)
+// 		return callReceiveFunction(targetContract, patientId, ipfs_url)
+// 	}).then (
+// 		txId => resolve(txId)
+// 	)
+// }
 
 exports.addRecord = function(records) {
   return new Promise( function(resolve, reject) {
@@ -116,8 +114,14 @@ function callReceiveFunction(contractAddress, signedHash, ipfs_url) {
     return new Promise( function(resolve, reject) {
         const myRecordContract = recordContract.at(contractAddress)
         const nonce = web3.eth.getTransactionCount(myAccount)
-        myRecordContract.showMeYourRecord(patientId, json, signedHash, {from: myAccount, gas: 4700000, nonce: nonce})
-    })
+        var txId = myRecordContract.doMyBest(patientId, json, signedHash, {from: myAccount, gas: 4700000, nonce: nonce})
+				console.log("Transaction ID is " + tx)
+        if (txId) {
+          resolve(txId)
+        } else {
+          reject()
+        }
+		})
 }
 
 function base58ToHex(b58) {
@@ -129,3 +133,41 @@ function hexToBase58(hexStr) {
   var buf = new Buffer(hexStr, 'hex');
   return bs58.encode(buf);
 };
+
+
+const recordContract = web3.eth.contract(myAbi)
+const myContract = recordContract.at(myContractAddress)
+
+var filter = myContract.requestH1Data()
+filter.watch((error, result) => {
+	// event.stopWatching();
+
+	if (error) {
+		console.log("Error: " + error);
+	} else {
+		console.log('result.args:', result.args)
+		json = result.args.json
+		signedHash = result.args.signedHash
+
+		const messageHashx = web3.sha3(json)
+		const patientId = JSON.parse(json).patientId
+		const recordId = JSON.parse(json).records[0].recordId
+		const applicantId = JSON.parse(json).applicant.id
+		const targetContract = dbData.hosiptals[applicantId - 1].contractAddress
+		const patientAccount = dbData.patientId[0].account
+
+
+		if (utils.verifySig(messageHashx, signedHash, patientAccount)) {
+			const data = JSON.stringify(dbData.records[0])
+			addRecord((ipfsHash) => {
+				// TODO: encrypt ipfsHash to ipfs_url
+				const ipfs_url = ipfsHash
+
+				// callReceiveFunction(contractAddress, signedHash, ipfs_url)
+				return callReceiveFunction(targetContract, patientId, ipfs_url)
+			})
+		} else {
+			reject()
+		}
+	}
+})
