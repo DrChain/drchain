@@ -15,6 +15,7 @@ services:
       - ./data/ethereum:/root/ethereum/node
       - ./log/ethereum:/var/log/ethereum
     restart: always
+    command: [ "--firstnode" ]
 
   ipfs:
     container_name: ipfs
@@ -36,7 +37,6 @@ services:
     build: ./src/explorer/
     hostname: explorer
     ports:
-      - "8000:8000"
       - "3000:3000"
     volumes:
       - /etc/localtime:/etc/localtime:ro
@@ -49,7 +49,7 @@ services:
   mres:
     container_name: mres
     build: 
-      context: ./src/drchain-server/
+      context: ./src/mres/
       dockerfile: docker/Dockerfile
     hostname: mres
     ports:
@@ -57,6 +57,6 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - ./configure.conf:/etc/mres/configure.conf:ro
-      - ./src/drchain-server/docker/docker-entrypoint.sh:/entrypoint.sh:ro
+      - ./src/mres/docker/docker-entrypoint.sh:/entrypoint.sh:ro
       - ./log/mres:/var/log/mres
     restart: always

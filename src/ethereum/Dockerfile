@@ -26,7 +26,8 @@ RUN mkdir -p /root/ethereum/node
 ADD files /tmp/files
 
 # Copy genesis.json
-RUN cp /tmp/files/genesis.json /root/ethereum/genesis.json
+RUN cp /tmp/files/genesis.json /root/ethereum/genesis.json \
+    && cp /tmp/files/*.sh /usr/local/bin/
 
 ## Initiate ethereum
 #RUN geth --datadir /root/ethereum/node init /root/ethereum/genesis.json

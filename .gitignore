@@ -5,9 +5,10 @@ configure.conf
 data/
 log/
 *.swp
-src/drchain-server/node_modules
-src/drchain-server/npm-debug.log
-src/drchain-server/.nuxt
-src/drchain-server/dist
-src/drchain-server/build
-src/drchain-server/config.json
+src/mres/node_modules
+src/mres/npm-debug.log
+src/mres/.nuxt
+src/mres/dist
+src/mres/build
+src/mres/config.json
+src/mres/env/backend.js

@@ -2,7 +2,7 @@ FROM node:7.7.1
 MAINTAINER wubm@cepave.com
 
 # ENV VAR
-ENV HOME=/root WORKDIR=/root/explorer
+ENV HOME=/root WORKDIR=/root/mres
 
 # Switch to /root
 WORKDIR $HOME
@@ -16,8 +16,8 @@ COPY . $WORKDIR
 
 # Install package
 RUN cd $WORKDIR \
-    && npm install -g pm2
+    && npm install -g pm2 \
+    && yarn install
 
 COPY docker/docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["-d"]

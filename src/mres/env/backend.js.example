@@ -1,0 +1,6 @@
+var remote = {
+  protocol: 'http',
+  backendPort: '<backend_port>',
+}
+
+module.exports = remote

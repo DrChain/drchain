@@ -1,5 +1,4 @@
 #Configure for ethereum
-
 POOL_NODEINFO=""
 ETHEREUM_HOST="ethereum"
 ETHEREUM_P2P_PORT="8740"
@@ -9,3 +8,12 @@ ETHEREUM_RPC_PORT="1987"
 EXPLORER_HOST="explorer"
 EXPLORER_PORT="8000"
 
+#Configure for IPFS
+IPFS_HOST="ipfs"
+IPFS_PORT="5001"
+IPFS_PROTOCOL="http"
+
+#Configure for MRES
+MRES_HOST="mres"
+MRES_BACKEND_PORT="80"
+MRES_FROM_PORT=""
