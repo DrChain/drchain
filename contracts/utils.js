@@ -1,8 +1,13 @@
 // Config
 global.config = {
   rpc: {
-    host: "139.162.75.109",
+    host: "localhost",
     port: "8545"
+  },
+  address: '0x3f7d5b8c219d8aaf6c51d83da5e5630455d5c7a6',
+  keys: {
+    privateKey: '5KdLA5jBUja5Emb8vzpXeXdk2jGb1gDeN2jPpnAGCVYQNckkoBe',
+    publicKey: '045371c4cee7210724d7733650801914abfeabdeb50960ebcb73de43dd7f020534d8adbaee5e78c0f3c5eb08177e6422f87db150d8275be3125791153feac24cf9'
   }
 }
 
@@ -10,21 +15,23 @@ global.config = {
 global.solc = require("solc")
 global.fs = require("fs")
 global.Web3 = require("web3")
-global.EthUtil = require("ethereumjs-util");
+global.EthUtil = require("ethereumjs-util")
 global.EthTx = require("ethereumjs-tx")
+global.bitcore = require('bitcore-lib')
+global.ECIES = require('bitcore-ecies')
 
 // Connect Web3 Instance
 global.web3 = new Web3(new Web3.providers.HttpProvider(`http://${global.config.rpc.host}:${global.config.rpc.port}`))
 
-// Global Account Accessors
-global.acct1 = web3.eth.accounts[0]
-global.acct2 = web3.eth.accounts[1]
-global.acct3 = web3.eth.accounts[2]
-global.acct4 = web3.eth.accounts[3]
-global.acct5 = web3.eth.accounts[4]
-
 // Helper Functions
 class Helpers {
+  constructor() {
+    this.keypair = ECIES()
+    .privateKey(new bitcore.PrivateKey(config.keys.privateKey))
+    .publicKey(new bitcore.PublicKey(config.keys.publicKey))
+  }
+
+
 
   contractName(source) {
     var re1 = /contract.*{/g
@@ -36,6 +43,7 @@ class Helpers {
     var compiled = solc.compile(source)
     var contractName = ":" + this.contractName(source)
     var bytecode = compiled["contracts"][contractName]["bytecode"]
+    console.log(bytecode)
     var abi = JSON.parse(compiled["contracts"][contractName]["interface"])
     var contract = global.web3.eth.contract(abi)
     // var gasEstimate = global.web3.eth.estimateGas({ data: '0x' + bytecode })
@@ -101,6 +109,27 @@ class Helpers {
     return true
   }
 
+  encrypt(message) {
+      /*
+       * this key is used as false sample, because bitcore would crash when alice has no privateKey
+       */
+      var encrypted = this.keypair.encrypt(message);
+
+      return encrypted.toString('hex');
+  }
+
+  /**
+   * decrypt the message with the privateKey of identity
+   * @param  {{privateKey: ?string, publicKey: string}}   identity
+   * @param  {string}   encrypted
+   * @return {string}   message
+   */
+  decrypt(encrypted) {
+      var decryptMe = new Buffer(encrypted, 'hex');
+
+      var decrypted = this.keypair.decrypt(decryptMe);
+      return decrypted.toString('ascii');
+  }
 }
 
 // Load Helpers into utils namespace
