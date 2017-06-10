@@ -1,0 +1,23 @@
+{
+  "web3": {
+    "host": "<ethernet_host>",
+    "port": "<ethernet_port>",
+    "protocol": "http"
+  },
+  "ipfs": {
+    "host": "<ipfs_host>",
+  	"port": "<ipfs_port>",
+  	"protocol": "<ipfs_protocol>"
+  },
+  "myAccount": "",
+  "myContract": "",
+  "contractAbi": "",
+  "myPrivkey": "",
+  "allMed": [
+    {
+      "id": "",
+      "pubkey": "",
+      "contractAddress": ""
+    }
+  ]
+}
