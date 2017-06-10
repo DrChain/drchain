@@ -1,7 +1,7 @@
 // Config
 global.config = {
   rpc: {
-    host: "localhost",
+    host: "139.162.75.109",
     port: "8545"
   },
   address: '0x3f7d5b8c219d8aaf6c51d83da5e5630455d5c7a6',
@@ -101,8 +101,6 @@ class Helpers {
     .publicKey(new bitcore.PublicKey(config.keys.publicKey))
   }
 
-
-
   contractName(source) {
     var re1 = /contract.*{/g
     var re2 = /\s\w+\s/
@@ -113,7 +111,7 @@ class Helpers {
     var compiled = solc.compile(source)
     var contractName = ":" + this.contractName(source)
     var bytecode = compiled["contracts"][contractName]["bytecode"]
-    console.log(bytecode)
+    // console.log(bytecode)
     var abi = JSON.parse(compiled["contracts"][contractName]["interface"])
     var contract = global.web3.eth.contract(abi)
     // var gasEstimate = global.web3.eth.estimateGas({ data: '0x' + bytecode })
