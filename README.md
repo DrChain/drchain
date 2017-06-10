@@ -1,2 +1,3 @@
-# drchain
+# Dr. Chain
+
 Healthcare Hackathon
