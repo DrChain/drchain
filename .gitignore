@@ -9,6 +9,5 @@ src/mres/node_modules
 src/mres/npm-debug.log
 src/mres/.nuxt
 src/mres/dist
-src/mres/build
 src/mres/config.json
 src/mres/env/backend.js
