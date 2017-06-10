@@ -1,3 +1,12 @@
 
 .DS_Store
 contracts/node_modules/
+configure.conf
+data/
+log/
+*.swp
+src/drchain-server/node_modules
+src/drchain-server/npm-debug.log
+src/drchain-server/.nuxt
+src/drchain-server/dist
+src/drchain-server/build
