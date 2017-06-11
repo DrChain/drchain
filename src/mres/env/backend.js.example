@@ -1,6 +1,10 @@
 var remote = {
   protocol: 'http',
   backendPort: '<backend_port>',
+  wsPort: '<ws_port>',
+  url: function (hostName) {
+    return this.protocol + '://' + hostName + ':' + this.wsPort
+  }
 }
 
 module.exports = remote

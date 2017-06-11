@@ -1,4 +1,6 @@
 let express = require('express')
+let io = require('socket.io')()
+let conf = require('../env/backend')
 
 let router = express.Router()
 
@@ -26,6 +28,12 @@ const myAbi = [{"constant":false,"inputs":[{"name":"signedHash","type":"bytes32"
 
 const recordContract = web3.eth.contract(myAbi)
 
+io.on('connection', function(client) {
+  console.log(client.id)
+})
+
+io.listen(conf.wsPort)
+
 // TODO
 const IS_EVENT_TEST = true
 
@@ -44,13 +52,15 @@ function callQueryFunction(contractAddress, patientId, json, signedHash) {
     })
 }
 
-router.get('/api/records', function (req, res, next) {
+router.post('/api/records', function (req, res, next) {
   const utils = new Helpers()
 
-	var url_parts = url.parse(req.url, true);
-	var query = url_parts.query;
-	var sign = req.query.sign
-	const content = JSON.parse(req.query.content)
+	var sign = req.body.sign
+  console.log("sign: ", sign)
+  console.log('req.body.content: ', req.body.content)
+	
+  let content = JSON.parse(req.body.content).content
+
 	console.log("content: ", content)
 
   // TODO: Remove
@@ -107,18 +117,20 @@ router.get('/api/records', function (req, res, next) {
       listener.getRecord(ipfsHash)
       .then(
     	 	record => {
-
     			// TODO: WebSocket to front-end
-
+          let recordObject = JSON.parse(record)
+          io.emit('record_received', recordObject)
+          
           const result = {
     		    isSuccess: true,
     				record: record
     		  }
-    		  res.json(result)
     		}
       )
     }
   })
+
+  res.send("ok")
 })
 router.get('/', function(req, res, next) {
   res.render('index');
