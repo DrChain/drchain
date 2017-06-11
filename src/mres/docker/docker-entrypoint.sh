@@ -5,14 +5,15 @@ source $CONF_FILE
 
 change_config() {
     cd $MRES_DIR
-    cp config.json.default config.json
-    sed -i "s/<ethernet_host>/$ETHEREUM_HOST/g" config.json
-    sed -i "s/<ethernet_port>/$ETHEREUM_RPC_PORT/g" config.json
-    sed -i "s/<ipfs_host>/$IPFS_HOST/g" config.json
-    sed -i "s/<ipfs_port>/$IPFS_PORT/g" config.json
-    sed -i "s/<ipfs_protocol>/$IPFS_PROTOCOL/g" config.json
-    cp env/backend.js.example env/backend.js
-    sed -i "s/<backend_port>/$MRES_BACKEND_PORT/g" env/backend.js
+    cp $MRES_DIR/env/config.json.default $MRES_DIR/env/config.json
+    sed -i "s/<ethernet_host>/$ETHEREUM_HOST/g" $MRES_DIR/env/config.json
+    sed -i "s/<ethernet_port>/$ETHEREUM_RPC_PORT/g" $MRES_DIR/env/config.json
+    sed -i "s/<ipfs_host>/$IPFS_HOST/g" $MRES_DIR/env/config.json
+    sed -i "s/<ipfs_port>/$IPFS_PORT/g" $MRES_DIR/env/config.json
+    sed -i "s/<ipfs_protocol>/$IPFS_PROTOCOL/g" $MRES_DIR/env/config.json
+    cp env/backend.js.example $MRES_DIR/env/backend.js
+    sed -i "s/<backend_port>/$MRES_BACKEND_PORT/g" $MRES_DIR/env/backend.js
+    sed -i "s/<ws_port>/$MRES_WEBSOCKET_PORT/g" $MRES_DIR/env/backend.js
 }
 
 main () {
