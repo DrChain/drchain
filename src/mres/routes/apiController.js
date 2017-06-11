@@ -9,7 +9,6 @@ let Ipfs = require('ipfs-mini')
 let bs58 = require('bs58')
 let url = require('url')
 let Helpers = require('./utils')
-let listener = require('./listener')
 
 const config = require('./../env/config.json');
 const dbData = require('./dbData.json');
@@ -28,6 +27,18 @@ const myAbi = [{"constant":false,"inputs":[{"name":"signedHash","type":"bytes32"
 
 const recordContract = web3.eth.contract(myAbi)
 
+
+
+// Set IPFS
+const ipfsHost = config.ipfs.host
+const ipfsPort = config.ipfs.port
+const ipfsProtocol = config.ipfs.protocol
+const ipfs = new Ipfs({
+  host: ipfsHost,
+  port: ipfsPort,
+  protocol: ipfsProtocol,
+});
+
 io.on('connection', function(client) {
   console.log(client.id)
 })
@@ -38,18 +49,26 @@ io.listen(conf.wsPort)
 const IS_EVENT_TEST = true
 
 function callQueryFunction(contractAddress, patientId, json, signedHash) {
-    return new Promise( function(resolve, reject) {
-        const myRecordContract = recordContract.at(contractAddress)
-        const nonce = web3.eth.getTransactionCount(myAccount)
+  const myRecordContract = recordContract.at(contractAddress)
+	var tx = myRecordContract.showMeYourRecord(patientId, json, signedHash, {from: myAccount, gas: 4700000})
+  console.log("Transaction ID is " + tx)
+  return tx
+}
 
-				var tx = myRecordContract.showMeYourRecord(patientId, json, signedHash, {from: myAccount, gas: 4700000})
-        console.log("Transaction ID is " + tx)
-        if (tx) {
-          resolve(tx)
-        } else {
-          reject()
-        }
+function getRecord(ipfsHash) {
+  return new Promise( function(resolve, reject) {
+    // var ipfsHash = hexToBase58(ipfsHashHex.slice(2));
+    ipfs.cat(ipfsHash, function(err, result) {
+      console.log(err, result);
+      if (err !== null) {
+        console.log("error:", err)
+        reject(err);
+        return;
+      }
+      console.log("result:", result)
+      resolve(result)
     })
+  })
 }
 
 router.post('/api/records', function (req, res, next) {
@@ -89,8 +108,8 @@ router.post('/api/records', function (req, res, next) {
 
     sign = '0x5da4800a548dde5f97d458910c4c171ad3899af7a69f002d19197714a8821072'
     json = 'testyooo'
-    console.log('    fake sign:', sign)
-    console.log('    fake json:', json)
+    console.log('    sign:', sign)
+    console.log('    json:', json)
   }
 
 
@@ -114,19 +133,21 @@ router.post('/api/records', function (req, res, next) {
   		// const ipfsHash = ipfs_url
       const ipfsHash = 'QmS91fDHGTR4QHxcGoCYQu2xD6s97ZWBfmCz2CbiwGsLeh'
 
-      listener.getRecord(ipfsHash)
+      getRecord(ipfsHash)
       .then(
     	 	record => {
+          console.log(record)
     			// TODO: WebSocket to front-end
-          let recordObject = JSON.parse(record)
-          io.emit('record_received', recordObject)
+          io.emit('record_received', record)
           
           const result = {
     		    isSuccess: true,
     				record: record
     		  }
     		}
-      )
+      ).catch((err) => {
+        console.log('fail', err);
+      })
     }
   })
 

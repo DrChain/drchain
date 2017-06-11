@@ -1,9 +1,48 @@
 <template>
   <div class="scan">
-    <div class="center">
-      <qr-code :text="text" size="500"></qr-code>
-      <div>
-        {{record}}
+    <div class="center container">
+      <div class="row">
+        <div class="col-md-6">
+          <qr-code :text="text" size="500"></qr-code>
+        </div>
+        <div class="col-md-6">
+          <table v-if="record" class="table">
+            <tbody>
+              <tr>
+                <th scope="row">紀錄名稱</th>
+                <td>{{record.name}}</td>
+              </tr>
+              <tr>
+                <th scope="row">Patient Id</th>
+                <td>{{record.patientId}}</td>
+              </tr>
+              <tr>
+                <th scope="row">Date</th>
+                <td>{{record.date}}</td>
+              </tr>
+              <tr>
+                <th scope="row">Physician Name</th>
+                <td>{{record.physicianName}}</td>
+              </tr>
+              <tr>
+                <th scope="row">ICD Code</th>
+                <td>{{record.data.icd.code}}</td>
+              </tr>
+              <tr>
+                <th scope="row">ICD Name</th>
+                <td>{{record.data.icd.name}}</td>
+              </tr>
+              <tr>
+                <th scope="row">醫囑</th>
+                <td>{{record.data.docSect.subjective}}</td>
+              </tr>
+              <tr>
+                <th scope="row">處方</th>
+                <td>{{record.data.prescription[0]}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -28,7 +67,7 @@ export default {
     this.socket = socket
     socket.on('record_received', (record) => {
       console.log(record)
-      this.record = record
+      this.record = JSON.parse(record)
     })
   },
 

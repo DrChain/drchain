@@ -83,45 +83,21 @@ function addRecord (records) {
   return new Promise( function(resolve, reject) {
 		ipfs.add(records, (err, ipfsHash) => {
 			if (err !== null) {
-					console.log("error:", err)
-					reject(err);
-					return; }
+				console.log("error:", err)
+				reject(err);
+				return; }
 			console.log("ipfsHash:", ipfsHash)
 			resolve(ipfsHash)
 		})
 	})
 }
 
-exports.getRecord = function(ipfsHash) {
-  return new Promise( function(resolve, reject) {
-    // var ipfsHash = hexToBase58(ipfsHashHex.slice(2));
-    ipfs.cat(ipfsHash, function(err, result) {
-      console.log(err, result);
-      if (err !== null) {
-        console.log("error:", err)
-        reject(err);
-        return;
-      }
-      console.log("result:", result)
-      resolve(result)
-    })
-  })
-  .then(result => { return result } )
-}
-
 function callReceiveFunction(contractAddress, signedHash, ipfs_url) {
-		// doMyBest(bytes32 signedHash, bytes32 ipfs_url)
-    return new Promise( function(resolve, reject) {
-        const myRecordContract = recordContract.at(contractAddress)
-        const nonce = web3.eth.getTransactionCount(myAccount)
-        var txId = myRecordContract.doMyBest(signedHash, ipfs_url, {from: myAccount, gas: 4700000, nonce: nonce})
-				console.log("Transaction ID is " + txId)
-        if (txId) {
-          resolve(txId)
-        } else {
-          reject()
-        }
-		})
+	// doMyBest(bytes32 signedHash, bytes32 ipfs_url)
+  let myRecordContract = recordContract.at(contractAddress)
+  let txId = myRecordContract.doMyBest(signedHash, ipfs_url, {from: myAccount, gas: 4700000})
+  console.log("Transaction ID is " + txId)
+  return txId
 }
 
 function base58ToHex(b58) {
@@ -163,9 +139,10 @@ filter.watch((error, result) => {
 			const targetContract = dbData.hosiptals[applicantId - 1].contractAddress
 			const patientAccount = dbData.patients[0].account
 
-
-			if (!utils.verifySig(messageHashx, signedHash, patientAccount)) {
-				const data = JSON.stringify(dbData.records[0])
+      // TODO
+			// if (utils.verifySig(messageHashx, signedHash, patientAccount)) { 
+			if (true) {
+      	const data = JSON.stringify(dbData.records[0])
 				addRecord(data)
 				.then((ipfsHash) => {
 					// TODO: encrypt ipfsHash to ipfs_url
@@ -173,13 +150,14 @@ filter.watch((error, result) => {
 
 					// callReceiveFunction(contractAddress, signedHash, ipfs_url)
 					callReceiveFunction(targetContract, signedHash, ipfs_url)
-				})
+				}).catch((err) => {
+          console.log('fail', err);
+        })
 			} else {
-				reject()
+        console.log('Error: verifySig error')
 			}
 		} catch (err) {
 			console.log(err)
-			process.exit()
 		}
 	}
 })
