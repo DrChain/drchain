@@ -1,7 +1,7 @@
 <template>
   <div class="scan">
     <div class="center">
-      <qr-code text="中文字" size="500"></qr-code>
+      <qr-code :text="text" size="500"></qr-code>
     </div>
   </div>
 </template>
@@ -11,6 +11,7 @@ export default {
   name: 'ScanPage',
   data () {
     return {
+      text: '{"content":{"patientId":"A12345678","applicant":{"id":2},"records":[{"hosiptalId":1,"recordId":1,}]}}',
       query: this.$route.params.query
     }
   },

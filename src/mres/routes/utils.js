@@ -171,12 +171,17 @@ class Helpers {
 
   verifySig(messageHashx, signedHash, account) {
     // Recover Address
+    console.log(`messageHashx ${messageHashx}, signedHash ${signedHash}, account ${account}`)
+
     var sigDecoded = EthUtil.fromRpcSig(signedHash)
     var recoveredPub = EthUtil.ecrecover(messageHashx, sigDecoded.v, sigDecoded.r, sigDecoded.s)
     var recoveredAddress = '0x' + EthUtil.pubToAddress(recoveredPub).toString("hex")
-
-    if (recoveredAddress !== account) throw new Error("Not match")
-    return true
+    console.log('recoveredAddress: ', recoveredAddress)
+    if (recoveredAddress !== account) {
+      return false
+    }else {
+      return true
+    }
   }
 
   encrypt(message) {

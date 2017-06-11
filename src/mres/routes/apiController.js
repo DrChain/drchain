@@ -26,10 +26,14 @@ const myAbi = [{"constant":false,"inputs":[{"name":"signedHash","type":"bytes32"
 
 const recordContract = web3.eth.contract(myAbi)
 
+// TODO
+const IS_EVENT_TEST = true
 
 function callQueryFunction(contractAddress, patientId, json, signedHash) {
     return new Promise( function(resolve, reject) {
         const myRecordContract = recordContract.at(contractAddress)
+        const nonce = web3.eth.getTransactionCount(myAccount)
+
 				var tx = myRecordContract.showMeYourRecord(patientId, json, signedHash, {from: myAccount, gas: 4700000})
         console.log("Transaction ID is " + tx)
         if (tx) {
@@ -39,32 +43,6 @@ function callQueryFunction(contractAddress, patientId, json, signedHash) {
         }
     })
 }
-
-function watchEventHostiptal_2(patientId) {
-		return new Promise( function(resolve, reject) {
-			const myContract = recordContract.at(myContractAddress)
-			var event = myContract.passDataToH2({patientId: patientId})
-			return event.watch()
-		})
-		.then(
-			(error, result) => {
-		    event.stopWatching();
-        const json = result.args.signedHash
-        const ipfs_url = result.args.ipfs_url
-				resolve(json, ipfs_url)
-		  }
-		)
-}
-
-// router.get('/api/no', function (req, res, next) {
-// 	return new Promise( function(resolve, reject) {
-// 		listener.listenQueryEvent()
-// 		.then(
-// 			result =>
-// 			res.json(result)
-// 		)
-// 	})
-// })
 
 router.get('/api/records', function (req, res, next) {
   const utils = new Helpers()
@@ -78,12 +56,10 @@ router.get('/api/records', function (req, res, next) {
   // TODO: Remove
   // Sign message as Patient
   const patientPrikey = "f481625bf23f9f5a02fd5b8d1abafef8e8c9e423ae36724f5231bbe19e0baa64"
-  const result = utils.signMsg(patientPrikey, content.toString())
+  const result = utils.signMsg(patientPrikey, JSON.stringify(content))
   const messageHashx = result[0]
   sign = result[1]
 
-  // TODO: old sign is too long
-  sign = '0x5da4800a548dde5f97d458910c4c171ad3899af7a69f002d19197714a8821072'
 
 
 	// TODO
@@ -93,34 +69,57 @@ router.get('/api/records', function (req, res, next) {
 	const contractAddress = dbData.hosiptals[applicantId - 1].contractAddress
 	console.log('contractAddress:', contractAddress)
 
-  // TODO
-  // const json = content.toString()
-  const json = 'testyooo'
+  var json = JSON.stringify(content)
+
+  // TODO: old sign is too long
+  if (IS_EVENT_TEST) {
+    console.log('[callQueryFunction]')
+    console.log('    right sign:', sign)
+    console.log('    right json:', json)
+
+    sign = '0x5da4800a548dde5f97d458910c4c171ad3899af7a69f002d19197714a8821072'
+    json = 'testyooo'
+    console.log('    fake sign:', sign)
+    console.log('    fake json:', json)
+  }
+
+
 
 	callQueryFunction(contractAddress, patientId, json, sign)
 
-	watchEventHostiptal_2()
-	.then(
-		(json, ipfs_url) => {
+  const myContract = recordContract.at(myContractAddress)
+  var filter = myContract.passDataToH2()
+  // TODO var event = myContract.passDataToH2({patientId: patientId})
+  filter.watch((error, result) => {
+    // event.stopWatching();
+    if (error) {
+  		console.log("Error: " + error);
+  	} else {
+      console.log('result.args:', result.args)
+      const json = result.args.signedHash
+      const ipfs_url = result.args.ipfs_url
 
       // TODO: decrypt ipfs_url to ipfsHash
 
-  		const ipfsHash = ipfs_url
-      return listener.getRecord(ipfsHash)
-	}).then(
-		 	record => {
+  		// const ipfsHash = ipfs_url
+      const ipfsHash = 'QmS91fDHGTR4QHxcGoCYQu2xD6s97ZWBfmCz2CbiwGsLeh'
 
-				// TODO: WebSocket to front-end
+      listener.getRecord(ipfsHash)
+      .then(
+    	 	record => {
 
-        const result = {
-			    isSuccess: true,
-					record: record
-			  }
-			  res.json(result)
-			}
-	)
+    			// TODO: WebSocket to front-end
+
+          const result = {
+    		    isSuccess: true,
+    				record: record
+    		  }
+    		  res.json(result)
+    		}
+      )
+    }
+  })
 })
-
 router.get('/', function(req, res, next) {
   res.render('index');
 })

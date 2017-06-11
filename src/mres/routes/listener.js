@@ -79,7 +79,7 @@ const utils = new Helpers()
 // 	)
 // }
 
-exports.addRecord = function(records) {
+function addRecord (records) {
   return new Promise( function(resolve, reject) {
 		ipfs.add(records, (err, ipfsHash) => {
 			if (err !== null) {
@@ -114,8 +114,8 @@ function callReceiveFunction(contractAddress, signedHash, ipfs_url) {
     return new Promise( function(resolve, reject) {
         const myRecordContract = recordContract.at(contractAddress)
         const nonce = web3.eth.getTransactionCount(myAccount)
-        var txId = myRecordContract.doMyBest(patientId, json, signedHash, {from: myAccount, gas: 4700000, nonce: nonce})
-				console.log("Transaction ID is " + tx)
+        var txId = myRecordContract.doMyBest(signedHash, ipfs_url, {from: myAccount, gas: 4700000, nonce: nonce})
+				console.log("Transaction ID is " + txId)
         if (txId) {
           resolve(txId)
         } else {
@@ -143,31 +143,43 @@ filter.watch((error, result) => {
 	// event.stopWatching();
 
 	if (error) {
-		console.log("Error: " + error);
+		console.log("1 Error: " + error);
 	} else {
 		console.log('result.args:', result.args)
-		json = result.args.json
-		signedHash = result.args.signedHash
+		var json = result.args.json
+		var signedHash = result.args.signedHash
 
-		const messageHashx = web3.sha3(json)
-		const patientId = JSON.parse(json).patientId
-		const recordId = JSON.parse(json).records[0].recordId
-		const applicantId = JSON.parse(json).applicant.id
-		const targetContract = dbData.hosiptals[applicantId - 1].contractAddress
-		const patientAccount = dbData.patientId[0].account
+		fakeJson = '{"patientId":"A12345678","applicant":{"id":2,"name":"貓大醫院","pubkey":"TODO"},"records":[{"hosiptalId":1,"recordId":1,"recordName":"熊大醫院 內科檢查"}]}'
+		fakeSignedHash = '0xa8096e23557d7de3bec8922d1f84b263926ffabac58d5ac581da875cdc04051950c5639bf3af673f59385de0a2d5ed471714d0e68fdbd42170549510f524b3e000'
+		json = fakeJson
+		signedHash = fakeSignedHash
+
+		try {
+			const messageHash = web3.sha3(json)
+			const messageHashx = new Buffer(messageHash.replace("0x", ""), "hex")
+			const patientId = JSON.parse(json).patientId
+			const recordId = JSON.parse(json).records[0].recordId
+			const applicantId = JSON.parse(json).applicant.id
+			const targetContract = dbData.hosiptals[applicantId - 1].contractAddress
+			const patientAccount = dbData.patients[0].account
 
 
-		if (utils.verifySig(messageHashx, signedHash, patientAccount)) {
-			const data = JSON.stringify(dbData.records[0])
-			addRecord((ipfsHash) => {
-				// TODO: encrypt ipfsHash to ipfs_url
-				const ipfs_url = ipfsHash
+			if (!utils.verifySig(messageHashx, signedHash, patientAccount)) {
+				const data = JSON.stringify(dbData.records[0])
+				addRecord(data)
+				.then((ipfsHash) => {
+					// TODO: encrypt ipfsHash to ipfs_url
+					const ipfs_url = ipfsHash
 
-				// callReceiveFunction(contractAddress, signedHash, ipfs_url)
-				return callReceiveFunction(targetContract, patientId, ipfs_url)
-			})
-		} else {
-			reject()
+					// callReceiveFunction(contractAddress, signedHash, ipfs_url)
+					callReceiveFunction(targetContract, signedHash, ipfs_url)
+				})
+			} else {
+				reject()
+			}
+		} catch (err) {
+			console.log(err)
+			process.exit()
 		}
 	}
 })
