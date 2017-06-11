@@ -1,5 +1,5 @@
 FROM node:7.7.1
-MAINTAINER wubm@cepave.com
+MAINTAINER bingmu@gmail.com
 
 # ENV VAR
 ENV HOME=/root WORKDIR=/root/mres
@@ -17,7 +17,9 @@ COPY . $WORKDIR
 # Install package
 RUN cd $WORKDIR \
     && npm install -g pm2 \
-    && yarn install
+    && yarn install \
+    && apt-get update \
+    && apt-get install vim
 
 COPY docker/docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]

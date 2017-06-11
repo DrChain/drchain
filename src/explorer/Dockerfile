@@ -1,5 +1,5 @@
 FROM node:7.7.1
-MAINTAINER wubm@cepave.com
+MAINTAINER bingmu@gmail.com
 
 # ENV VAR
 ENV HOME=/root WORKDIR=/root/explorer

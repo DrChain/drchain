@@ -1,5 +1,5 @@
 FROM ubuntu:14.04
-MAINTAINER wubm <wubm@cepave.com>
+MAINTAINER wubm <bingmu@gmail.com>
 
 # ENV VAR
 ENV HOME /root
