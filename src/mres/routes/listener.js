@@ -17,7 +17,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(web3Protocol + '://' + web
 // const myPrivkey = config.myPrivkey
 
 // simulate first
-const myContractAddress = '0x53c29e930753eec03002316e69565eb6cae707cc'
+const myContractAddress = config.myContract // '0x53c29e930753eec03002316e69565eb6cae707cc'
 const myAccount = '0xfd54bccece385e59ca9549cea0322d133ea1e640'
 const myPrivkey = 'dc335d1563244f9ff4babf57dd797b5b1ba3fa74ba42bd41133ed94d7f4f9f1d'
 

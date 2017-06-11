@@ -77,7 +77,7 @@ router.post('/api/records', function (req, res, next) {
 	var sign = req.body.sign
   console.log("sign: ", sign)
   console.log('req.body.content: ', req.body.content)
-	
+
   let content = JSON.parse(req.body.content).content
 
 	console.log("content: ", content)
@@ -139,7 +139,7 @@ router.post('/api/records', function (req, res, next) {
           console.log(record)
     			// TODO: WebSocket to front-end
           io.emit('record_received', record)
-          
+
           const result = {
     		    isSuccess: true,
     				record: record
