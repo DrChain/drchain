@@ -20,6 +20,7 @@ main () {
     cd $MRES_DIR
     if [ -f /initialization ] && [ `cat /initialization` == "1" ] ; then
         pm2 start $MRES_DIR/bin/www
+        pm2 start $MRES_DIR/routes/listener.js
         exec /sbin/init
     else
         change_config
