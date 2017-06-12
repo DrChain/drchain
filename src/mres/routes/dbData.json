@@ -4,13 +4,13 @@
       "id": 1,
       "name": "熊大醫院",
       "pubkey": "TODO",
-      "contractAddress": "0x53c29e930753eec03002316e69565eb6cae707cc"
+      "contractAddress": "0xb41eb89f2248a65adc2280212af8c093af581c3b"
     },
     {
       "id": 2,
       "name": "貓大醫院",
       "pubkey": "TODO",
-      "contractAddress": "0x53c29e930753eec03002316e69565eb6cae707cc"
+      "contractAddress": "0xb41eb89f2248a65adc2280212af8c093af581c3b"
     }
   ],
   "records": [

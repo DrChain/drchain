@@ -1,4 +1,4 @@
-# Electronic medical records
+# Medical Records Exchange System
 
 > MERS
 
@@ -49,4 +49,10 @@ npm run e2e
 
 # run all tests
 npm test
+```
+
+
+## Event Listener
+```bash
+pm2 start routes/listener.js
 ```

@@ -1,154 +1,97 @@
-// Config
-global.config = {
-  rpc: {
-    host: "localhost",
-    port: "8545"
-  },
-  address: '0x3f7d5b8c219d8aaf6c51d83da5e5630455d5c7a6',
-  keys: {
-    privateKey: '5KdLA5jBUja5Emb8vzpXeXdk2jGb1gDeN2jPpnAGCVYQNckkoBe',
-    publicKey: '045371c4cee7210724d7733650801914abfeabdeb50960ebcb73de43dd7f020534d8adbaee5e78c0f3c5eb08177e6422f87db150d8275be3125791153feac24cf9'
-  }
-}
-
 // Load Libraries
-global.solc = require("solc")
-global.fs = require("fs")
-global.Web3 = require("web3")
-global.EthUtil = require("ethereumjs-util")
-global.EthTx = require("ethereumjs-tx")
-global.bitcore = require('bitcore-lib')
-global.ECIES = require('bitcore-ecies')
+const solc = require("solc")
+const fs = require("fs")
+const Web3 = require("web3")
+const EthUtil = require("ethereumjs-util")
+const EthTx = require("ethereumjs-tx")
+const bitcore = require('bitcore-lib')
+const ECIES = require('bitcore-ecies')
+const Ipfs = require('ipfs-mini')
+const Tx = require('ethereumjs-tx')
+const bs58 = require('bs58')
 
-// Connect Web3 Instance
-global.web3 = new Web3(new Web3.providers.HttpProvider(`http://${global.config.rpc.host}:${global.config.rpc.port}`))
 
-global.request = {
-  "content": {
-    "patientId": "A12345678",
-    "applicant": {
-      "id": 2,
-      "name": "貓大醫院",
-      "pubkey": "TODO"
-    },
-    "records": [
-        {
-          "hosiptalId": 1,
-          "recordId": 1,
-          "recordName": "熊大醫院 內科檢查"
-        }
-    ]
-  }
+const config = require('./../env/config.json')
+
+// web3
+const web3Host = config.web3.host
+const web3Port = config.web3.port
+const web3Protocol = config.web3.protocol
+const web3 = new Web3(new Web3.providers.HttpProvider(web3Protocol + '://' + web3Host + ':' + web3Port ));
+
+// IPFS
+const ipfsHost = config.ipfs.host
+const ipfsPort = config.ipfs.port
+const ipfsProtocol = config.ipfs.protocol
+const ipfs = new Ipfs({
+  host: ipfsHost,
+  port: ipfsPort,
+  protocol: ipfsProtocol,
+})
+
+
+/**
+ * Convert base58 string to hex string
+ * @param {string} b58String
+ * @return {string} hexString
+ */
+function base58ToHex(b58String) {
+  var hexBuf = new Buffer(bs58.decode(b58String));
+  return hexBuf.toString('hex');
 }
 
-global.note = {
-  "hosiptals": [
-    {
-      "id": 1,
-      "name": "熊大醫院",
-      "pubkey": "TODO"
-    },
-    {
-      "id": 2,
-      "name": "貓大醫院",
-      "pubkey": "TODO"
-    }
-  ],
-  "records": [
-    {
-      "hospitalId": 1,
-      "recordId": 1,
-      "patientId": "A12345678",
-      "name": "熊大醫院 內科檢查",
-      "date": "2016-01-01",
-      "physicianName": "Dr. Chain",
-      "data": {
-        "department": "",
-        "icd": {
-          "code": "J11.08",
-          "name": "Influenza due to unidentified influenza virus with specified pneumonia 未確認流感病毒所致流行性感冒併明示類型肺炎"
-        },
-        "docSect": {
-          "subjective": "stable now and no complaint, report normal home BP; ever increased BP noted for weeks,no DOE, no chest pain, no syncope, no PND，no orthopnea",
-          "objective": "BP:148/70 mmHg, HR:66/min, PE: pale conjunctiva-, icteric sclera-; JVE-, carotid bruits-，goiter-; clear bs, no rales, no wheezing; RHB，soft SM，Peripheral pulses: ++, pitting edema-",
-          "assessment": "HCVD"
-        },
-        "procedure": [
-          "腹部超音波，追蹤性" ,
-          "全套血液檢查ⅢCBC-III"
-        ],
-        "prescription": [
-          "力停疼錠500公絲"
-        ]
-      }
-    }
-  ],
-  "patients": [
-    {
-      "id": "A12345678",
-      "name": "Brian Chen",
-      "gender": "M",
-      "birthDate": "1960-01-01"
-    }
-  ]
+/**
+ * Convert hex string to base58 string
+ * @param {string} hexString
+ * @return {string} b58String
+ */
+function hexToBase58(hexString) {
+  var buf = new Buffer(hexString, 'hex');
+  return bs58.encode(buf);
 }
+
 
 // Helper Functions
 class Helpers {
-  constructor() {
+  constructor(config) {
+    // Set bitcoin ECIES for IPFS encryption
     this.keypair = ECIES()
-    .privateKey(new bitcore.PrivateKey(config.keys.privateKey))
-    .publicKey(new bitcore.PublicKey(config.keys.publicKey))
+    .privateKey(new bitcore.PrivateKey(config.myPrivateKey))
+    .publicKey(new bitcore.PublicKey(config.myPublicKey))
+
+    this.privateKey = config.myPrivateKey
+    this.account = config.myAccount
   }
 
 
-
-  contractName(source) {
+  /**
+   * Get contract name from source code
+   * @param {string} source
+   * @return {string} contractName
+   */
+  getContractName(source) {
     var re1 = /contract.*{/g
     var re2 = /\s\w+\s/
     return source.match(re1).pop().match(re2)[0].trim()
+
   }
 
-  createContract(source, options={}) {
-    var compiled = solc.compile(source)
-    var contractName = ":" + this.contractName(source)
-    var bytecode = compiled["contracts"][contractName]["bytecode"]
-    console.log(bytecode)
-    var abi = JSON.parse(compiled["contracts"][contractName]["interface"])
-    var contract = global.web3.eth.contract(abi)
-    // var gasEstimate = global.web3.eth.estimateGas({ data: '0x' + bytecode })
-
-    var deployed = contract.new(Object.assign({
-      from: global.web3.eth.accounts[0],
-      data: '0x' + bytecode,
-      gas: '4700000'
-    //   gas: gasEstimate
-    }, options), (error, result) => { })
-
-    return deployed
-  }
-
-  loadContract(name) {
-    var path = `./${name.toLowerCase()}.sol`
-    return fs.readFileSync(path, 'utf8')
-  }
-
-  deployContract(name, options={}) {
-    var source = this.loadContract(name)
-    return this.createContract(source, options)
-  }
-
-  etherBalance(contract) {
+  /**
+   * Get ether balance of a contract
+   * @param {object} contract
+   * @return {number} etherBalance
+   */
+  getEtherBalance(contract) {
     switch(typeof(contract)) {
       case "object":
         if(contract.address) {
-          return global.web3.fromWei(global.web3.eth.getBalance(contract.address), 'ether').toNumber()
+          return web3.fromWei(web3.eth.getBalance(contract.address), 'ether').toNumber()
         } else {
           return new Error("cannot call getEtherBalance on an object that does not have a property 'address'")
         }
         break
       case "string":
-        return global.web3.fromWei(global.web3.eth.getBalance(contract), 'ether').toNumber()
+        return web3.fromWei(web3.eth.getBalance(contract), 'ether').toNumber()
         break
     }
   }
@@ -201,14 +144,200 @@ class Helpers {
    */
   decrypt(encrypted) {
       var decryptMe = new Buffer(encrypted, 'hex');
-
       var decrypted = this.keypair.decrypt(decryptMe);
       return decrypted.toString('ascii');
   }
-}
 
-// Load Helpers into utils namespace
-global.utils = new Helpers()
+  /**
+   * Get contract via contractAddress and ABI
+   * @param {string} contractAddress
+   * @param {string} abi
+   * @return {object} contract
+   */
+  getContract(contractAddress, abi) {
+    const contract = web3.eth.contract(abi)
+    return contract.at(contractAddress)
+  }
+
+  /**
+   * Call a contract
+   * @param {string} contractAddress
+   * @param {string} abi
+   * @param {string} functionName
+   * @param {array} parameters
+   * @return {string} txHash
+   */
+  callContract(contractAddress, abi, functionName, parameters) {
+    let contract = web3.eth.contract(abi)
+    contract = contract.at(contractAddress)
+
+    const gasPrice = web3.eth.gasPrice
+    const gasPriceHex = web3.toHex(gasPrice)
+    const gasLimitHex = web3.toHex(4700000)
+
+    const nonce = web3.eth.getTransactionCount(this.account)
+    const nonceHex = web3.toHex(nonce)
+
+    const contractData = contract[functionName].getData(...parameters)
+    console.log('contractData: ', contractData)
+    const serializedTx = this.generateserializedTx(nonceHex, gasPriceHex, gasLimitHex, contractData, this.privateKey, this.account, contractAddress)
+    const txHash = this.sendRawTransaction(serializedTx, false)
+    return txHash
+  }
+
+  /**
+   * Deploy a contract
+   * @param {string} source
+   * @return {string} contractAddress
+   */
+  deployContract(source) {
+    const compiled = solc.compile(source)
+    let bytecode = ''
+    let abi = ''
+    for (let contractName in compiled.contracts) {
+       bytecode = '0x' + compiled.contracts[contractName].bytecode
+       abi = JSON.parse(compiled.contracts[contractName].interface)
+    }
+
+    const gasPrice = web3.eth.gasPrice
+    const gasPriceHex = web3.toHex(gasPrice)
+    const gasLimitHex = 2 * web3.eth.estimateGas({data: bytecode});
+
+    const nonce = web3.eth.getTransactionCount(this.account)
+    const nonceHex = web3.toHex(nonce)
+    const contract = web3.eth.contract(abi)
+    const contractData = contract.new.getData({
+        data: bytecode
+    })
+
+    let serializedTx = this.generateserializedTx(nonceHex, gasPriceHex, gasLimitHex, contractData, this.privateKey, this.account, null)
+    let contractAddress = this.sendRawTransaction(serializedTx, true)
+
+    return(contractAddress)
+  }
+
+  /**
+   * Generate serialized transaction
+   * @param {string} nonceHex
+   * @param {string} gasPriceHex
+   * @param {string} gasLimitHex
+   * @param {string} data
+   * @param {string} privateKey
+   * @param {string} from
+   * @param {string} to
+   * @return {string} serializedTx
+   */
+  generateserializedTx(nonceHex, gasPriceHex, gasLimitHex, data, privateKey, from, to) {
+    const rawTx = {
+        nonce: nonceHex,
+        gasPrice: gasPriceHex,
+        gasLimit: gasLimitHex,
+        data: data,
+        from: from,
+        to: to
+    }
+
+    console.log("rawTx: ", rawTx)
+
+    // Sign
+    const privateKeyBuffer = new Buffer(privateKey, 'hex')
+    const tx = new Tx(rawTx)
+    tx.sign(privateKeyBuffer)
+    const serializedTx = tx.serialize()
+
+    return serializedTx
+  }
+
+  /**
+   * Send Raw Transaction
+   * @param {string} serializedTx
+   * @param {string} isDeploy
+   * @return {string} txHash or contractAddress
+   */
+  sendRawTransaction(serializedTx, isDeploy) {
+    // Send Transaction
+    web3.eth.sendRawTransaction( '0x' + serializedTx.toString('hex'), (err, txHash) => {
+      if (!err) {
+          console.log("txHash:", txHash)
+          if (isDeploy) { return(this.waitForMining(txHash)) }
+          else { return(txHash) }
+      } else {
+          console.log(err)
+      }
+    });
+  }
+
+  /**
+   * Wait for mining, and return contract address
+   * @param {string} txHash
+   * @return {string} contractAddress
+   */
+  waitForMining(txHash) {
+    console.log('mining....')
+    const receipt = web3.eth.getTransactionReceipt(txHash);
+    // polling
+    if (receipt == null) {
+      setTimeout(() => {
+        return(this.waitForMining(txHash))
+      }, 2000);
+    } else {
+      console.log('contract address: ' + receipt.contractAddress)
+      return(null)
+    }
+  }
+
+
+  /**
+   * IPFS - addRecord
+   * @param {string} records
+   * @return {string} ipfsHashHex
+   */
+  addRecord (records) {
+
+    return new Promise( function(resolve, reject) {
+  		ipfs.add(records, (err, ipfsHash) => {
+  			if (err !== null) {
+  				console.log("error:", err)
+  				reject(err);
+  				return; }
+
+  			console.log("[addRecord] ipfsHash:", ipfsHash)
+        var hexBuf = new Buffer(bs58.decode(ipfsHash))
+        const ipfsHashHex = '0x' + hexBuf.toString('hex').slice(4)
+        console.log("[addRecord] ipfsHashHex:", ipfsHashHex)
+
+  			resolve(ipfsHashHex)
+  		})
+  	})
+  }
+
+  /**
+   * IPFS - getRecord
+   * @param {string} ipfsHashHex
+   * @return {string} result
+   */
+  getRecord(ipfsHashHex) {
+    return new Promise( function(resolve, reject) {
+      let that = this
+
+      console.log('[getRecord] ipfsHashHex:', ipfsHashHex)
+      var buf = new Buffer('1220' + ipfsHashHex.slice(2), 'hex');
+      let ipfsHash = bs58.encode(buf);
+      console.log('[getRecord] ipfsHash : ', ipfsHash)
+      
+      ipfs.cat(ipfsHash, function(err, result) {
+        console.log(err, result);
+        if (err !== null) {
+          console.log("error:", err)
+          reject(err);
+          return;
+        }
+        console.log("result:", result)
+        resolve(result)
+      })
+    })
+  }
+}
 
 // Start repl
 require('repl').start({})

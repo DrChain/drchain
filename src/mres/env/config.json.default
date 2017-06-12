@@ -12,12 +12,6 @@
   "myAccount": "",
   "myContract": "",
   "contractAbi": "",
-  "myPrivkey": "",
-  "allMed": [
-    {
-      "id": "",
-      "pubkey": "",
-      "contractAddress": ""
-    }
-  ]
+  "myPrivateKey": "",
+  "myPublicKey": ""
 }
