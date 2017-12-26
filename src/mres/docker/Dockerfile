@@ -19,7 +19,7 @@ RUN cd $WORKDIR \
     && npm install -g pm2 \
     && yarn install \
     && apt-get update \
-    && apt-get install vim
+    && apt-get install -y vim
 
 COPY docker/docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
